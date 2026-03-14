@@ -4,13 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ACTIFIT — Portal de Inscripciones</title>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>body{margin:0;padding:0;}</style>
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel">
+<script type="text/babel" data-presets="react">
 const { useState } = React;
 const OR="#E84B1A",OR2="#ff5a2c",DK="#080808",BG="#f7f5f2";
 const SHEETS_URL="https://script.google.com/macros/s/AKfycbzRQjsdFDgM44LyLys-hs0nZQv-CREST4YV2NDFgC6RKADCvjOvWAzDJwMqhuPOXdn6bw/exec";
@@ -649,15 +650,14 @@ function Wizard({type,onBack}){
   );
 }
 
-export default function App(){
+function App(){
   const [view,setView]=useState("portal");
   const [type,setType]=useState(null);
   if(view==="form"&&type)return <Wizard type={type} onBack={()=>{setView("portal");setType(null);}}/>;
   return <Portal onSelect={t=>{setType(t);setView("form");}}/>;
 }
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
 </script>
 </body>
 </html>
