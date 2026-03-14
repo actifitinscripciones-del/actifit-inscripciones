@@ -542,7 +542,9 @@ function Wizard({type,onBack}){
       tutor:isMenor?(data.tNombre+" "+data.tApellidos):"",
     };
     try{
-      await fetch(SHEETS_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+      const form=new FormData();
+      form.append("data",JSON.stringify(payload));
+      await fetch(SHEETS_URL,{method:"POST",mode:"no-cors",body:form});
       setDone(true);
     }catch(e){
       setSendErr("Error de conexion. Intentalo de nuevo.");
