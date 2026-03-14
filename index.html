@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACTIFIT — Portal de Inscripciones</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState } = React;
+const OR="#E84B1A",OR2="#ff5a2c",DK="#080808",BG="#f7f5f2";
+const SHEETS_URL="https://script.google.com/macros/s/AKfycbzRQjsdFDgM44LyLys-hs0nZQv-CREST4YV2NDFgC6RKADCvjOvWAzDJwMqhuPOXdn6bw/exec";
+const CSS=`
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',system-ui,sans-serif;background:${BG}}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes dotPulse{0%,100%{box-shadow:0 0 0 3px #E84B1A35,0 0 14px #E84B1A80}50%{box-shadow:0 0 0 8px #E84B1A15,0 0 28px #E84B1A}}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(180%)}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+.fade-1{animation:fadeUp .5s .08s ease both}
+.fade-2{animation:fadeUp .5s .18s ease both}
+.fade-3{animation:fadeUp .5s .28s ease both}
+.fade-4{animation:fadeUp .5s .38s ease both}
+
+.card-lift{transition:transform .28s cubic-bezier(.34,1.4,.64,1),box-shadow .28s ease}
+.card-lift:hover{transform:translateY(-7px)}
+
+.shimmer{position:relative;overflow:hidden}
+.shimmer::after{content:'';position:absolute;top:0;left:0;width:35%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.22),transparent);transform:translateX(-100%)}
+.shimmer:hover::after{animation:shimmer .55s ease forwards}
+
+.pg{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.vg{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#ede9e2}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.cbar{display:flex;flex-wrap:wrap}
+.clink{border-right:1.5px solid #ede9e2}
+
+@media(max-width:680px){
+  .pg{grid-template-columns:1fr}
+  .vg{grid-template-columns:1fr}
+  .g2{grid-template-columns:1fr}
+  .clink{border-right:none!important;border-bottom:1.5px solid #ede9e2}
+  .hero-pad{padding:44px 20px 106px!important}
+  .wrap{padding:0 16px 64px!important;margin-top:-38px!important}
+  .nav-in{padding:0 18px!important}
+  .wiz-body{padding:20px 16px 134px!important}
+  .wiz-tabs{padding:8px 16px!important}
+  .wiz-foot{padding:12px 16px!important}
+  .ci{padding:16px 18px!important}
+}
+@media(min-width:681px) and (max-width:1020px){
+  .hero-pad{padding:60px 32px 114px!important}
+  .wrap{padding:0 28px 64px!important}
+}
+`;
+
+function Logo({h=48,light=false,glow=false}){
+  const b64="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";
+  const imgH=h;
+  const imgW=h*5.2;
+  const filterVal=light
+    ? (glow
+        ? "brightness(0) invert(1) drop-shadow(0 0 14px rgba(232,75,26,0.73)) drop-shadow(0 0 48px rgba(232,75,26,0.33))"
+        : "brightness(0) invert(1)")
+    : (glow
+        ? "drop-shadow(0 0 14px rgba(232,75,26,0.73)) drop-shadow(0 0 48px rgba(232,75,26,0.33))"
+        : "none");
+  return(
+    <img
+      src={`data:image/png;base64,${b64}`}
+      alt="ACTIFIT"
+      style={{height:imgH,width:imgW,objectFit:"contain",display:"block",filter:filterVal,userSelect:"none"}}
+    />
+  );
+}
+
+function ST({children,ac}){
+  return(
+    <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:18,marginTop:30}}>
+      <div style={{width:3,height:18,borderRadius:2,background:ac||OR,flexShrink:0}}/>
+      <span style={{fontSize:10,fontWeight:900,color:ac||OR,letterSpacing:"0.14em",textTransform:"uppercase"}}>{children}</span>
+      <div style={{flex:1,height:1,background:`linear-gradient(90deg,${ac||OR}30,transparent)`}}/>
+    </div>
+  );
+}
+
+const SEMANAS=[
+  {mes:"JUNIO",cols:["2–6 Jun","9–13 Jun","16–20 Jun","23–27 Jun"]},
+  {mes:"JULIO",cols:["30Jun–4Jul","7–11 Jul","14–18 Jul","21–25 Jul","28Jul–1Ago"]},
+  {mes:"AGOSTO",cols:["4–8 Ago","11–15 Ago","18–22 Ago","25–29 Ago"]},
+  {mes:"SEPTIEMBRE",cols:["1–5 Sep","8–12 Sep","15–19 Sep","22–26 Sep"]},
+];
+const FORMS=[
+  {id:"entrenamiento",title:"Entrenamiento Personal",badge:null,ac:OR,gr:`linear-gradient(135deg,${OR},${OR2})`},
+  {id:"deportiva_adulto",title:"Inscripción Deportiva",badge:"Adulto",ac:"#059669",gr:"linear-gradient(135deg,#059669,#10b981)"},
+  {id:"deportiva_menor",title:"Inscripción Deportiva",badge:"Menor",ac:"#059669",gr:"linear-gradient(135deg,#059669,#10b981)"},
+  {id:"natacion_adulto",title:"Natación Verano",badge:"Adulto",ac:"#0284c7",gr:"linear-gradient(135deg,#0284c7,#38bdf8)"},
+  {id:"natacion_menor",title:"Natación Verano",badge:"Menor",ac:"#0284c7",gr:"linear-gradient(135deg,#0284c7,#38bdf8)"},
+  {id:"verano_menor",title:"Curso de Verano",badge:"Menor",ac:"#d97706",gr:"linear-gradient(135deg,#d97706,#fbbf24)"},
+];
+const GRUPOS=[
+  {id:"entrenamiento",icon:"💪",title:"Entrenamiento Personal",desc:"Sesiones 100% personalizadas con tu entrenador",ac:OR,gr:`linear-gradient(135deg,${OR},${OR2})`,variantes:[{id:"entrenamiento",label:"Adulto",menor:false}]},
+  {id:"deportiva",icon:"🏅",title:"Inscripción Deportiva",desc:"Pádel · Tenis · Pilates · Zumba · Yoga · Fit Training",ac:"#059669",gr:"linear-gradient(135deg,#059669,#10b981)",variantes:[{id:"deportiva_adulto",label:"Adulto",menor:false},{id:"deportiva_menor",label:"Menor",menor:true}]},
+  {id:"natacion",icon:"🏊",title:"Natación Verano",desc:"Clases en piscina durante toda la temporada estival",ac:"#0284c7",gr:"linear-gradient(135deg,#0284c7,#38bdf8)",variantes:[{id:"natacion_adulto",label:"Adulto",menor:false},{id:"natacion_menor",label:"Menor",menor:true}]},
+  {id:"verano",icon:"☀️",title:"Curso de Verano",desc:"Programa completo de actividades para los más pequeños",ac:"#d97706",gr:"linear-gradient(135deg,#d97706,#fbbf24)",variantes:[{id:"verano_menor",label:"Menor",menor:true}]},
+];
+const INIT={
+  urbanizacion:"",nombre:"",apellidos:"",dni:"",fechaNac:"",direccion:"",localidad:"",provincia:"",cp:"",correo:"",telefono:"",
+  mNombre:"",mApellidos:"",mDni:"",mFechaNac:"",mDireccion:"",mPoblacion:"",
+  tNombre:"",tApellidos:"",tFechaNac:"",tDni:"",tDireccion:"",tLocalidad:"",tProvincia:"",tCp:"",tCorreo:"",tTelefono:"",
+  emergencia:"",semanasSelec:[],nivelNatacion:"",actividadTipo:"",diasActividad:"",horario:"",nivelActividad:"",obsActividad:"",
+  sexo:"",profesion:"",peso:"",altura:"",municipio:"",nacionalidad:"",tipoEntren:"",numMiembros:"",lugarEntren:"",diasSemana:"",diasEsp:"",entrenador:"",
+  objPrincipal:"",prefObj:"",obsObj:"",expDeportiva:"",actFisicas:"",instalaciones:"",material:"",
+  lesionOsea:"",descLesionOsea:"",lesionMuscular:"",descLesionMuscular:"",cardiovascular:"",descCardiovascular:"",asfixia:"",descAsfixia:"",
+  medicacion:"",descMedicacion:"",pautaMedico:"",descPauta:"",alergia:"",embarazada:"",fumador:"",
+  asma:"",diabetes:"",epilepsia:"",anemia:"",hipertension:"",osteoporosis:"",obsPatologias:"",mareos:"",desmayos:"",nauseas:"",difRespirar:"",obsSalud:"",
+  tienePatologia:"",patologiaDesc:"",tratamientoMenor:"",medicaMenor:"",otrosDatos:"",autorizaImagenes:"",metodoPago:"",ibanDomiciliacion:"",
+};
+
+const LBL={display:"block",fontSize:10,fontWeight:900,color:"#9c9490",textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:7};
+const INP_S={width:"100%",padding:"13px 16px",border:"1.5px solid #e5e0d8",borderRadius:13,fontSize:14,color:"#111",background:"#fff",outline:"none",fontFamily:"'Nunito',sans-serif",boxSizing:"border-box",transition:"border-color .2s,box-shadow .2s",fontWeight:600};
+
+function F({label,name,val,set,type="text",ph=""}){
+  return <div style={{marginBottom:16}}>
+    <label style={LBL}>{label}</label>
+    <input type={type} value={val} onChange={e=>set(name,e.target.value)} placeholder={ph} style={INP_S}
+      onFocus={e=>{e.target.style.borderColor=OR;e.target.style.boxShadow=`0 0 0 4px ${OR}18`;}}
+      onBlur={e=>{e.target.style.borderColor="#e5e0d8";e.target.style.boxShadow="none";}}/>
+  </div>;
+}
+function TA({label,name,val,set,rows=3,ph=""}){
+  return <div style={{marginBottom:16}}>
+    <label style={LBL}>{label}</label>
+    <textarea value={val} onChange={e=>set(name,e.target.value)} rows={rows} placeholder={ph}
+      style={{...INP_S,resize:"vertical"}}
+      onFocus={e=>{e.target.style.borderColor=OR;e.target.style.boxShadow=`0 0 0 4px ${OR}18`;}}
+      onBlur={e=>{e.target.style.borderColor="#e5e0d8";e.target.style.boxShadow="none";}}/>
+  </div>;
+}
+function G2({children}){return <div className="g2">{children}</div>;}
+function YN({label,name,val,set}){
+  return <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 0",borderBottom:"1px solid #ede9e2"}}>
+    <span style={{fontSize:14,color:"#444",flex:1,paddingRight:18,lineHeight:1.55,fontWeight:600}}>{label}</span>
+    <div style={{display:"flex",gap:7,flexShrink:0}}>
+      {["Sí","No"].map(o=><button key={o} onClick={()=>set(name,o)}
+        style={{padding:"8px 20px",borderRadius:10,fontSize:12,fontWeight:900,cursor:"pointer",
+          background:val===o?(o==="Sí"?OR:DK):"#f7f5f2",
+          color:val===o?"#fff":"#999",
+          border:`1.5px solid ${val===o?(o==="Sí"?OR:DK):"#e5e0d8"}`,
+          transition:"all .15s",fontFamily:"'Nunito',sans-serif",
+          boxShadow:val===o?`0 4px 14px ${o==="Sí"?OR+"55":"#00000035"}`:"none"}}>{o}</button>)}
+    </div>
+  </div>;
+}
+function YNplus({label,name,val,set,fn,fv,fl="Descríbalo brevemente:"}){
+  return <div>
+    <YN label={label} name={name} val={val} set={set}/>
+    {val==="Sí"&&<div style={{padding:"10px 0 2px 18px",borderLeft:`3px solid ${OR}`,marginTop:6,marginBottom:4}}>
+      <F label={fl} name={fn} val={fv} set={set} ph="Escribe aquí..."/>
+    </div>}
+  </div>;
+}
+function Chips({label,name,val,set,opts}){
+  return <div style={{marginBottom:20}}>
+    {label&&<label style={LBL}>{label}</label>}
+    <div style={{display:"flex",flexWrap:"wrap",gap:9}}>
+      {opts.map(o=><button key={o} onClick={()=>set(name,o)}
+        style={{padding:"10px 18px",borderRadius:26,fontSize:13,fontWeight:700,cursor:"pointer",
+          background:val===o?OR:"#fff",
+          color:val===o?"#fff":"#666",
+          border:`1.5px solid ${val===o?OR:"#e5e0d8"}`,
+          transition:"all .2s",fontFamily:"'Nunito',sans-serif",
+          boxShadow:val===o?`0 6px 18px ${OR}45`:"0 2px 8px rgba(0,0,0,0.05)"}}>{o}</button>)}
+    </div>
+  </div>;
+}
+function Weeks({val,set}){
+  const toggle=s=>{const c=val||[];set("semanasSelec",c.includes(s)?c.filter(x=>x!==s):[...c,s]);};
+  return <div style={{marginBottom:20}}>
+    <label style={LBL}>Selecciona las semanas</label>
+    <div style={{background:"#fff",borderRadius:18,padding:20,border:"1.5px solid #e5e0d8",boxShadow:"0 4px 20px rgba(0,0,0,0.04)"}}>
+      {SEMANAS.map(({mes,cols})=><div key={mes} style={{marginBottom:18}}>
+        <div style={{fontSize:9,fontWeight:900,color:OR,letterSpacing:"0.18em",marginBottom:10,textTransform:"uppercase"}}>{mes}</div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+          {cols.map(s=>{const sel=(val||[]).includes(s);return(
+            <button key={s} onClick={()=>toggle(s)}
+              style={{padding:"8px 15px",borderRadius:10,fontSize:12,fontWeight:700,cursor:"pointer",
+                background:sel?OR:"#f7f5f2",color:sel?"#fff":"#888",
+                border:`1.5px solid ${sel?OR:"transparent"}`,
+                transition:"all .2s",fontFamily:"'Nunito',sans-serif",
+                boxShadow:sel?`0 4px 14px ${OR}40`:"none"}}>{sel?"✓ ":""}{s}</button>
+          );})}
+        </div>
+      </div>)}
+    </div>
+    {(val||[]).length>0&&<div style={{marginTop:10,padding:"10px 16px",background:`${OR}10`,border:`1.5px solid ${OR}30`,borderRadius:12,fontSize:13,color:OR,fontWeight:800}}>
+      ✓ {val.length} semana{val.length!==1?"s":""} seleccionada{val.length!==1?"s":""}
+    </div>}
+  </div>;
+}
+function SecAlumno({d,s}){return <><G2><F label="Nombre" name="nombre" val={d.nombre} set={s}/><F label="Apellidos" name="apellidos" val={d.apellidos} set={s}/></G2><G2><F label="Fecha de nacimiento" name="fechaNac" val={d.fechaNac} set={s} type="date"/><F label="DNI / NIE" name="dni" val={d.dni} set={s}/></G2><F label="Dirección" name="direccion" val={d.direccion} set={s}/><G2><F label="Localidad" name="localidad" val={d.localidad} set={s}/><F label="Provincia" name="provincia" val={d.provincia} set={s}/></G2><G2><F label="Código Postal" name="cp" val={d.cp} set={s}/><div/></G2><G2><F label="Correo electrónico" name="correo" val={d.correo} set={s} type="email"/><F label="Teléfono" name="telefono" val={d.telefono} set={s} type="tel"/></G2></>;}
+function SecMenor({d,s}){return <><G2><F label="Nombre" name="mNombre" val={d.mNombre} set={s}/><F label="Apellidos" name="mApellidos" val={d.mApellidos} set={s}/></G2><G2><F label="DNI / NIE" name="mDni" val={d.mDni} set={s}/><F label="Fecha de nacimiento" name="mFechaNac" val={d.mFechaNac} set={s} type="date"/></G2><G2><F label="Dirección" name="mDireccion" val={d.mDireccion} set={s}/><F label="Población" name="mPoblacion" val={d.mPoblacion} set={s}/></G2></>;}
+function SecTutor({d,s}){return <><G2><F label="Nombre tutor/a" name="tNombre" val={d.tNombre} set={s}/><F label="Apellidos" name="tApellidos" val={d.tApellidos} set={s}/></G2><G2><F label="Fecha nacimiento" name="tFechaNac" val={d.tFechaNac} set={s} type="date"/><F label="DNI / NIE" name="tDni" val={d.tDni} set={s}/></G2><F label="Dirección" name="tDireccion" val={d.tDireccion} set={s}/><G2><F label="Localidad" name="tLocalidad" val={d.tLocalidad} set={s}/><F label="Provincia" name="tProvincia" val={d.tProvincia} set={s}/></G2><G2><F label="Código Postal" name="tCp" val={d.tCp} set={s}/><div/></G2><G2><F label="Correo electrónico" name="tCorreo" val={d.tCorreo} set={s} type="email"/><F label="Teléfono" name="tTelefono" val={d.tTelefono} set={s} type="tel"/></G2><F label="Emergencia — avisar a:" name="emergencia" val={d.emergencia} set={s} ph="Nombre y teléfono"/></>;}
+function SecActividad({d,s}){return <><Chips label="Actividad" name="actividadTipo" val={d.actividadTipo} set={s} opts={["Pádel","Tenis","Natación","Pilates","Fit Training","Baile","Entren. Personal","Zumba","Yoga"]}/><G2><F label="Días" name="diasActividad" val={d.diasActividad} set={s} ph="Lun, Mié..."/><F label="Horario" name="horario" val={d.horario} set={s} ph="10:00–11:00"/></G2><div style={{marginBottom:18}}><label style={LBL}>Nivel del 1 al 5</label><div style={{display:"flex",gap:10}}>{[1,2,3,4,5].map(n=><button key={n} onClick={()=>s("nivelActividad",""+n)} style={{width:50,height:50,borderRadius:14,fontSize:16,fontWeight:900,cursor:"pointer",background:d.nivelActividad===String(n)?OR:"#fff",color:d.nivelActividad===String(n)?"#fff":"#ccc",border:`1.5px solid ${d.nivelActividad===String(n)?OR:"#e5e0d8"}`,transition:"all .2s",fontFamily:"'Nunito',sans-serif",boxShadow:d.nivelActividad===String(n)?`0 6px 18px ${OR}50`:"0 2px 8px rgba(0,0,0,0.05)"}}>{n}</button>)}</div></div><TA label="Observaciones / Historial / Lesiones" name="obsActividad" val={d.obsActividad} set={s} rows={3}/></>;}
+function SecMedAdulto({d,s}){return <><YNplus label="¿Tiene alguna lesión ósea?" name="lesionOsea" val={d.lesionOsea} set={s} fn="descLesionOsea" fv={d.descLesionOsea}/><YNplus label="¿Tiene alguna lesión muscular?" name="lesionMuscular" val={d.lesionMuscular} set={s} fn="descLesionMuscular" fv={d.descLesionMuscular}/><YNplus label="¿Padece enfermedad cardiovascular?" name="cardiovascular" val={d.cardiovascular} set={s} fn="descCardiovascular" fv={d.descCardiovascular}/><YNplus label="¿Se asfixia haciendo ejercicio?" name="asfixia" val={d.asfixia} set={s} fn="descAsfixia" fv={d.descAsfixia}/><YNplus label="¿Toma alguna medicación?" name="medicacion" val={d.medicacion} set={s} fn="descMedicacion" fv={d.descMedicacion} fl="Especifique:"/><YNplus label="¿Su médico le ha dado pautas para el ejercicio?" name="pautaMedico" val={d.pautaMedico} set={s} fn="descPauta" fv={d.descPauta} fl="Especifique:"/><YN label="¿Padece alguna alergia?" name="alergia" val={d.alergia} set={s}/><YN label="¿Está embarazada o podría estarlo?" name="embarazada" val={d.embarazada} set={s}/><YN label="¿Es fumador/a?" name="fumador" val={d.fumador} set={s}/><div style={{height:8}}/>{[["asma","Asma"],["diabetes","Diabetes"],["epilepsia","Epilepsia"],["anemia","Anemia"],["hipertension","Hipertensión"],["osteoporosis","Osteoporosis"]].map(([k,l])=><YN key={k} label={l} name={k} val={d[k]} set={s}/>)}<TA label="Observaciones" name="obsPatologias" val={d.obsPatologias} set={s} rows={2}/><div style={{height:8}}/>{[["mareos","Mareos al esfuerzo"],["desmayos","Desmayos / lipotimias"],["nauseas","Náuseas"],["difRespirar","Dificultad para respirar"]].map(([k,l])=><YN key={k} label={l} name={k} val={d[k]} set={s}/>)}<TA label="Observaciones generales" name="obsSalud" val={d.obsSalud} set={s} rows={2}/></>;}
+function SecMedMenor({d,s}){return <><p style={{fontSize:14,color:"#666",marginBottom:16,lineHeight:1.65,fontWeight:600}}>Indique si el menor presenta alguna enfermedad, alergia o patología de importancia:</p><Chips label="" name="tienePatologia" val={d.tienePatologia} set={s} opts={["Sí presenta","No presenta"]}/>{d.tienePatologia==="Sí presenta"&&<><TA label="Patología / alergia y características" name="patologiaDesc" val={d.patologiaDesc} set={s} rows={3}/><TA label="Tratamiento y medidas" name="tratamientoMenor" val={d.tratamientoMenor} set={s} rows={2}/><F label="Medicación actual" name="medicaMenor" val={d.medicaMenor} set={s}/><TA label="Otros datos de interés" name="otrosDatos" val={d.otrosDatos} set={s} rows={2}/></>}</>;}
+function SecImagenes({d,s,menor}){return <><p style={{fontSize:14,color:"#666",marginBottom:16,lineHeight:1.65,fontWeight:600}}>{menor?"Como padre/madre/tutor legal, autorizo a":"Autorizo a"} ACTIFIT a fotografiar y/o grabar vídeos de las actividades y publicarlos con fines educativos y promocionales.</p><Chips label="" name="autorizaImagenes" val={d.autorizaImagenes} set={s} opts={["✓ Sí, autorizo","✗ No autorizo"]}/></>;}
+function SecPago({d,s,concepto}){return <><Chips label="Método de pago" name="metodoPago" val={d.metodoPago} set={s} opts={["Transferencia bancaria","Metálico","Domiciliación bancaria"]}/>{d.metodoPago==="Transferencia bancaria"&&<div style={{background:`linear-gradient(135deg,#fff8f5,#fff)`,border:`1.5px solid ${OR}25`,borderRadius:18,padding:22,fontSize:14,lineHeight:2.2,color:"#444",marginTop:10,boxShadow:`0 8px 32px ${OR}12`}}><div style={{fontWeight:900,color:OR,marginBottom:8,fontSize:10,textTransform:"uppercase",letterSpacing:"0.16em"}}>Datos bancarios</div>IBAN: <strong>ES14 0081 0650 3100 0157 2868</strong><br/>Beneficiario: <strong>ACTIFIT S.L.</strong><br/>Concepto: <strong>"{concepto}"</strong></div>}{d.metodoPago==="Domiciliación bancaria"&&<F label="IBAN" name="ibanDomiciliacion" val={d.ibanDomiciliacion} set={s} ph="ES00 0000 0000 0000 0000 0000"/>}</>;}
+
+const PASOS={
+  entrenamiento:["Datos","Entreno","Objetivos","Deporte","Salud","Resumen"],
+  deportiva_adulto:["Datos","Actividad","Salud","Imágenes","Pago","Resumen"],
+  deportiva_menor:["Menor","Tutor","Actividad","Salud","Imágenes","Pago","Resumen"],
+  natacion_adulto:["Datos","Urb.","Semanas","Salud","Imágenes","Pago","Resumen"],
+  natacion_menor:["Menor","Tutor","Semanas","Salud","Imágenes","Pago","Resumen"],
+  verano_menor:["Menor","Tutor","Semanas","Salud","Imágenes","Pago","Resumen"],
+};
+
+function Paso({type,step,d,s,ac}){
+  const meta=FORMS.find(f=>f.id===type)||{};
+  const concepto=`${meta.title||type} / ${d.urbanizacion||d.nombre||d.mNombre||""}`;
+  if(type==="entrenamiento"){
+    if(step===0)return <><ST ac={ac}>Datos Personales</ST><F label="Nombre completo" name="nombre" val={d.nombre} set={s}/><G2><F label="Fecha de nacimiento" name="fechaNac" val={d.fechaNac} set={s} type="date"/><F label="DNI / NIE" name="dni" val={d.dni} set={s}/></G2><div style={{marginBottom:18}}><label style={LBL}>Sexo</label><div style={{display:"flex",gap:10}}>{["Masculino","Femenino"].map(v=><button key={v} onClick={()=>s("sexo",v)} style={{padding:"12px 28px",borderRadius:13,fontSize:14,fontWeight:800,cursor:"pointer",border:`1.5px solid ${d.sexo===v?OR:"#e5e0d8"}`,background:d.sexo===v?OR:"#fff",color:d.sexo===v?"#fff":"#999",transition:"all .2s",fontFamily:"'Nunito',sans-serif",boxShadow:d.sexo===v?`0 6px 18px ${OR}45`:"0 2px 8px rgba(0,0,0,0.05)"}}>{v}</button>)}</div></div><G2><F label="Peso (kg)" name="peso" val={d.peso} set={s} ph="70"/><F label="Altura (cm)" name="altura" val={d.altura} set={s} ph="175"/></G2><F label="Profesión" name="profesion" val={d.profesion} set={s}/><ST ac={ac}>Contacto</ST><F label="Dirección" name="direccion" val={d.direccion} set={s}/><G2><F label="Localidad" name="localidad" val={d.localidad} set={s}/><F label="Municipio" name="municipio" val={d.municipio} set={s}/></G2><G2><F label="Código Postal" name="cp" val={d.cp} set={s}/><F label="Nacionalidad" name="nacionalidad" val={d.nacionalidad} set={s}/></G2><G2><F label="Teléfono" name="telefono" val={d.telefono} set={s} type="tel"/><F label="Correo" name="correo" val={d.correo} set={s} type="email"/></G2></>;
+    if(step===1)return <><ST ac={ac}>Tipo de Entrenamiento</ST><Chips label="Modalidad" name="tipoEntren" val={d.tipoEntren} set={s} opts={["Individual","Dúo","Pequeño grupo","Online"]}/><G2><F label="Nº miembros" name="numMiembros" val={d.numMiembros} set={s} ph="ej. 2"/><F label="Lugar" name="lugarEntren" val={d.lugarEntren} set={s} ph="Gimnasio, parque..."/></G2><G2><F label="Días / semana" name="diasSemana" val={d.diasSemana} set={s} ph="ej. 3"/><F label="Días específicos" name="diasEsp" val={d.diasEsp} set={s} ph="Lun, Mié, Vie"/></G2><F label="Entrenador/a" name="entrenador" val={d.entrenador} set={s}/></>;
+    if(step===2)return <><ST ac={ac}>Objetivos</ST><Chips label="Objetivo principal" name="objPrincipal" val={d.objPrincipal} set={s} opts={["Pérdida de peso","Ganancia muscular","Mejora cardiovascular","Rehabilitación","Rendimiento","Bienestar"]}/><F label="Preferencia" name="prefObj" val={d.prefObj} set={s} ph="ej. Más fuerza que cardio"/><TA label="Observaciones" name="obsObj" val={d.obsObj} set={s} rows={3}/></>;
+    if(step===3)return <><ST ac={ac}>Información Deportiva</ST><TA label="Experiencia deportiva previa" name="expDeportiva" val={d.expDeportiva} set={s} rows={3}/><TA label="Actividades que te gustan" name="actFisicas" val={d.actFisicas} set={s} rows={2}/><TA label="Instalaciones disponibles" name="instalaciones" val={d.instalaciones} set={s} rows={2}/><TA label="Material disponible" name="material" val={d.material} set={s} rows={2}/></>;
+    if(step===4)return <><ST ac={ac}>Ficha Médica</ST><SecMedAdulto d={d} s={s}/></>;
+    if(step===5)return <Resumen d={d} type={type} ac={ac}/>;
+  }
+  if(type==="deportiva_adulto"){if(step===0)return <><ST ac={ac}>Urbanización y Datos</ST><F label="Urbanización / Dirección" name="urbanizacion" val={d.urbanizacion} set={s}/><SecAlumno d={d} s={s}/></>;if(step===1)return <><ST ac={ac}>Actividad</ST><SecActividad d={d} s={s}/></>;if(step===2)return <><ST ac={ac}>Ficha Médica</ST><SecMedAdulto d={d} s={s}/></>;if(step===3)return <><ST ac={ac}>Uso de Imágenes</ST><SecImagenes d={d} s={s} menor={false}/></>;if(step===4)return <><ST ac={ac}>Forma de Pago</ST><SecPago d={d} s={s} concepto={concepto}/></>;if(step===5)return <Resumen d={d} type={type} ac={ac}/>;}
+  if(type==="deportiva_menor"){if(step===0)return <><ST ac={ac}>Urbanización y Menor</ST><F label="Urbanización / Dirección" name="urbanizacion" val={d.urbanizacion} set={s}/><SecMenor d={d} s={s}/></>;if(step===1)return <><ST ac={ac}>Tutor / Responsable</ST><SecTutor d={d} s={s}/></>;if(step===2)return <><ST ac={ac}>Actividad</ST><SecActividad d={d} s={s}/></>;if(step===3)return <><ST ac={ac}>Ficha Médica</ST><SecMedMenor d={d} s={s}/></>;if(step===4)return <><ST ac={ac}>Uso de Imágenes</ST><SecImagenes d={d} s={s} menor/></>;if(step===5)return <><ST ac={ac}>Forma de Pago</ST><SecPago d={d} s={s} concepto={concepto}/></>;if(step===6)return <Resumen d={d} type={type} ac={ac}/>;}
+  if(type==="natacion_adulto"){if(step===0)return <><ST ac={ac}>Datos del Alumno/a</ST><SecAlumno d={d} s={s}/></>;if(step===1)return <><ST ac={ac}>Urbanización y Emergencia</ST><F label="Nombre de la urbanización" name="urbanizacion" val={d.urbanizacion} set={s}/><F label="Emergencia — avisar a:" name="emergencia" val={d.emergencia} set={s} ph="Nombre y teléfono"/></>;if(step===2)return <><Weeks val={d.semanasSelec} set={s}/><TA label="Observaciones / Nivel de natación" name="nivelNatacion" val={d.nivelNatacion} set={s} rows={3}/></>;if(step===3)return <><ST ac={ac}>Ficha Médica</ST><SecMedAdulto d={d} s={s}/></>;if(step===4)return <><ST ac={ac}>Uso de Imágenes</ST><SecImagenes d={d} s={s} menor={false}/></>;if(step===5)return <><ST ac={ac}>Forma de Pago</ST><SecPago d={d} s={s} concepto={concepto}/></>;if(step===6)return <Resumen d={d} type={type} ac={ac}/>;}
+  if(type==="natacion_menor"||type==="verano_menor"){if(step===0)return <><ST ac={ac}>Urbanización y Menor</ST><F label="Nombre de la urbanización" name="urbanizacion" val={d.urbanizacion} set={s}/><SecMenor d={d} s={s}/></>;if(step===1)return <><ST ac={ac}>Tutor / Responsable</ST><SecTutor d={d} s={s}/></>;if(step===2)return <><Weeks val={d.semanasSelec} set={s}/><TA label={type==="verano_menor"?"Observaciones (juegos, timidez...)":"Observaciones / Nivel de natación"} name="nivelNatacion" val={d.nivelNatacion} set={s} rows={3}/></>;if(step===3)return <><ST ac={ac}>Ficha Médica</ST><SecMedMenor d={d} s={s}/></>;if(step===4)return <><ST ac={ac}>Uso de Imágenes</ST><SecImagenes d={d} s={s} menor/></>;if(step===5)return <><ST ac={ac}>Forma de Pago</ST><SecPago d={d} s={s} concepto={concepto}/></>;if(step===6)return <Resumen d={d} type={type} ac={ac}/>;}
+  return null;
+}
+
+function Resumen({d,type,ac}){
+  const isMenor=["natacion_menor","verano_menor","deportiva_menor"].includes(type);
+  const rows=type==="entrenamiento"
+    ?[["Nombre",d.nombre],["Correo",d.correo],["Teléfono",d.telefono],["Modalidad",d.tipoEntren],["Objetivo",d.objPrincipal]]
+    :isMenor
+    ?[["Menor",`${d.mNombre} ${d.mApellidos}`],["Tutor",`${d.tNombre} ${d.tApellidos}`],["Correo",d.tCorreo],["Teléfono",d.tTelefono],["Urbanización",d.urbanizacion]]
+    :[["Nombre",`${d.nombre} ${d.apellidos}`],["Correo",d.correo],["Teléfono",d.telefono],["Urbanización",d.urbanizacion],["Actividad",d.actividadTipo||d.nivelNatacion||"—"]];
+  return <>
+    <div style={{background:"#fff",borderRadius:20,overflow:"hidden",border:"1.5px solid #ede9e2",marginBottom:16,boxShadow:"0 8px 32px rgba(0,0,0,0.06)"}}>
+      {rows.map(([k,v],i)=><div key={k} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"15px 20px",background:i%2===0?"#fff":"#faf8f5",borderBottom:"1px solid #f2ede6"}}>
+        <span style={{fontSize:10,color:"#b8b0a4",fontWeight:900,textTransform:"uppercase",letterSpacing:"0.12em"}}>{k}</span>
+        <span style={{fontSize:14,color:"#111",fontWeight:700,textAlign:"right",maxWidth:"65%"}}>{v||"—"}</span>
+      </div>)}
+    </div>
+    <div style={{background:"#faf8f5",borderRadius:14,padding:16,fontSize:12,color:"#b8b0a4",lineHeight:1.8,fontWeight:600,border:"1.5px solid #ede9e2"}}>
+      🔒 Datos tratados conforme a la Ley Orgánica 3/2018 (RGPD). ACTIFIT S.L. — AV. Independencia 45, San Sebastián de los Reyes.
+    </div>
+  </>;
+}
+
+/* ══════════════════════════════
+   PORTAL
+══════════════════════════════ */
+function Portal({onSelect}){
+  const [hov,setHov]=useState(null);
+  const [open,setOpen]=useState(null);
+  const handleCard=g=>{if(g.variantes.length===1)onSelect(g.variantes[0].id);else setOpen(o=>o===g.id?null:g.id);};
+
+  return(
+    <div style={{minHeight:"100vh",background:BG,overflowX:"hidden",fontFamily:"'Nunito',sans-serif"}}>
+      <style>{CSS}</style>
+
+      {/* ── NAVBAR negro ── */}
+      <nav style={{background:DK,position:"sticky",top:0,zIndex:100,borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
+        <div className="nav-in" style={{maxWidth:1160,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",height:58,padding:"0 32px"}}>
+          <Logo h={26} light/>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:7,height:7,borderRadius:"50%",background:OR,animation:"dotPulse 2.5s ease-in-out infinite"}}/>
+            <span style={{fontSize:9,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:"0.26em",fontWeight:900}}>Inscripciones</span>
+          </div>
+        </div>
+      </nav>
+
+      {/* ── HERO negro con naranja ── */}
+      <div className="hero-pad" style={{position:"relative",padding:"80px 32px 130px",overflow:"hidden",
+        background:OR}}>
+        {/* textura sutil — círculos blancos muy transparentes como en el manual */}
+        <div style={{position:"absolute",inset:0,pointerEvents:"none",opacity:.06,
+          backgroundImage:`radial-gradient(circle,#fff 1px,transparent 1px)`,
+          backgroundSize:"28px 28px"}}/>
+        {/* fade suave a color de fondo */}
+        <div style={{position:"absolute",bottom:0,left:0,right:0,height:140,
+          background:`linear-gradient(transparent,${BG})`,pointerEvents:"none"}}/>
+
+        <div style={{maxWidth:1160,margin:"0 auto",textAlign:"center",position:"relative",zIndex:1}}>
+          {/* logo blanco sobre naranja */}
+          <div className="fade-1" style={{display:"inline-block",marginBottom:8}}>
+            <Logo h={90} light/>
+          </div>
+          {/* separador decorativo blanco */}
+          <div className="fade-2" style={{display:"flex",alignItems:"center",gap:14,justifyContent:"center",margin:"18px auto 22px",maxWidth:300}}>
+            <div style={{flex:1,height:1,background:`linear-gradient(90deg,transparent,rgba(255,255,255,0.6))`}}/>
+            <div style={{width:5,height:5,borderRadius:"50%",background:"#fff",boxShadow:`0 0 10px rgba(255,255,255,0.8)`}}/>
+            <div style={{flex:1,height:1,background:`linear-gradient(90deg,rgba(255,255,255,0.6),transparent)`}}/>
+          </div>
+          <p className="fade-3" style={{color:"rgba(255,255,255,0.82)",fontSize:14,maxWidth:360,margin:"0 auto 28px",lineHeight:2.1,fontWeight:600,letterSpacing:"0.04em"}}>
+            Elige tu modalidad y completa tu inscripción en minutos
+          </p>
+          {/* pills de actividades — clickables */}
+          <div className="fade-4" style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
+            {GRUPOS.map(g=>(
+              <button key={g.id} onClick={()=>{
+                setOpen(g.id);
+                setTimeout(()=>{
+                  const el=document.getElementById(`card-${g.id}`);
+                  if(el) el.scrollIntoView({behavior:"smooth",block:"center"});
+                },80);
+              }} style={{display:"inline-flex",alignItems:"center",gap:7,padding:"7px 16px",borderRadius:30,
+                background:"rgba(255,255,255,0.18)",border:"1px solid rgba(255,255,255,0.32)",
+                cursor:"pointer",fontFamily:"'Nunito',sans-serif",transition:"background .2s,transform .15s"}}
+              onMouseEnter={e=>{e.currentTarget.style.background="rgba(255,255,255,0.32)";e.currentTarget.style.transform="translateY(-2px)"}}
+              onMouseLeave={e=>{e.currentTarget.style.background="rgba(255,255,255,0.18)";e.currentTarget.style.transform="translateY(0)"}}>
+                <span style={{fontSize:14}}>{g.icon}</span>
+                <span style={{fontSize:11,color:"#fff",fontWeight:800}}>{g.title}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── CARDS sobre fondo claro ── */}
+      <div className="wrap" style={{maxWidth:1160,margin:"-44px auto 0",padding:"0 32px 80px",position:"relative",zIndex:1}}>
+        <div className="pg">
+          {GRUPOS.map((g,gi)=>{
+            const isOpen=open===g.id,multi=g.variantes.length>1,isHov=hov===g.id;
+            return(
+              <div id={`card-${g.id}`} key={g.id} className={`fade-${gi+1}`} style={{gridColumn:isOpen&&multi?"1/-1":"span 1"}}>
+                {!(isOpen&&multi)&&(
+                  <button className="card-lift" onClick={()=>handleCard(g)}
+                    onMouseEnter={()=>setHov(g.id)} onMouseLeave={()=>setHov(null)}
+                    style={{width:"100%",border:"none",padding:0,borderRadius:24,cursor:"pointer",
+                      textAlign:"left",overflow:"hidden",display:"block",
+                      background:"#fff",fontFamily:"'Nunito',sans-serif",
+                      boxShadow:isHov
+                        ?`0 24px 60px rgba(0,0,0,0.14),0 0 0 2px ${g.ac}45`
+                        :"0 4px 24px rgba(0,0,0,0.07),0 0 0 1.5px rgba(0,0,0,0.04)",
+                      transition:"box-shadow .28s"}}>
+                    {/* barra superior con gradiente y glow */}
+                    <div style={{height:4,background:g.gr,boxShadow:isHov?`0 0 18px ${g.ac}70`:`0 0 8px ${g.ac}30`,transition:"box-shadow .28s"}}/>
+                    <div style={{padding:"24px 24px 22px",display:"flex",gap:18,alignItems:"flex-start"}}>
+                      {/* icono con fondo suave de color */}
+                      <div style={{width:64,height:64,borderRadius:20,flexShrink:0,
+                        background:`linear-gradient(145deg,${g.ac}18,${g.ac}07)`,
+                        border:`1.5px solid ${g.ac}20`,
+                        display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,
+                        boxShadow:`0 6px 20px ${g.ac}20`}}>
+                        {g.icon}
+                      </div>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:17,fontWeight:900,color:DK,marginBottom:6,lineHeight:1.2,letterSpacing:"-0.01em"}}>{g.title}</div>
+                        <p style={{fontSize:13,color:"#9c9490",margin:"0 0 16px",lineHeight:1.65,fontWeight:600}}>{g.desc}</p>
+                        {multi?(
+                          <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
+                            {g.variantes.map(v=>(
+                              <div key={v.id} style={{display:"flex",alignItems:"center",gap:6,
+                                background:v.menor?"#fff8ed":"#f0faf6",
+                                border:`1.5px solid ${v.menor?"#f59e0b35":g.ac+"30"}`,
+                                borderRadius:24,padding:"5px 14px"}}>
+                                <span style={{fontSize:13}}>{v.menor?"🧒":"🧑"}</span>
+                                <span style={{fontSize:12,fontWeight:800,color:v.menor?"#c47a0c":g.ac}}>{v.label}</span>
+                              </div>
+                            ))}
+                            <span style={{fontSize:11,color:"#ccc",fontStyle:"italic",fontWeight:600}}>elegir abajo</span>
+                          </div>
+                        ):(
+                          <div className="shimmer" style={{display:"inline-flex",alignItems:"center",gap:9,
+                            color:"#fff",background:g.gr,borderRadius:14,padding:"11px 20px",
+                            fontSize:13,fontWeight:900,
+                            boxShadow:isHov?`0 8px 28px ${g.ac}55`:`0 4px 16px ${g.ac}35`,
+                            transition:"box-shadow .25s"}}>
+                            Inscribirse →
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                )}
+
+                {isOpen&&multi&&(
+                  <div style={{borderRadius:24,overflow:"hidden",
+                    boxShadow:`0 20px 64px rgba(0,0,0,0.12),0 0 0 2px ${g.ac}30`,
+                    fontFamily:"'Nunito',sans-serif"}}>
+                    {/* header negro con glow color */}
+                    <div style={{background:`linear-gradient(135deg,${DK} 0%,#1a0800 100%)`,
+                      padding:"24px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",
+                      borderBottom:`1px solid ${g.ac}20`}}>
+                      <div style={{display:"flex",alignItems:"center",gap:18}}>
+                        <div style={{width:64,height:64,borderRadius:20,
+                          background:`linear-gradient(145deg,${g.ac}28,${g.ac}10)`,
+                          border:`1.5px solid ${g.ac}40`,
+                          display:"flex",alignItems:"center",justifyContent:"center",
+                          fontSize:28,boxShadow:`0 8px 24px ${g.ac}35`}}>
+                          {g.icon}
+                        </div>
+                        <div>
+                          <div style={{fontSize:9,color:"rgba(255,255,255,0.25)",textTransform:"uppercase",letterSpacing:"0.2em",fontWeight:900,marginBottom:5}}>Modalidad seleccionada</div>
+                          <div style={{fontSize:20,fontWeight:900,color:"#fff",letterSpacing:"-0.02em"}}>{g.title}</div>
+                        </div>
+                      </div>
+                      <button onClick={()=>setOpen(null)}
+                        style={{background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.12)",
+                          color:"rgba(255,255,255,0.4)",cursor:"pointer",width:40,height:40,borderRadius:12,
+                          fontSize:15,display:"flex",alignItems:"center",justifyContent:"center",
+                          fontFamily:"'Nunito',sans-serif",transition:"all .18s"}}
+                        onMouseEnter={e=>{e.currentTarget.style.background="rgba(255,255,255,0.14)";e.currentTarget.style.color="#fff";}}
+                        onMouseLeave={e=>{e.currentTarget.style.background="rgba(255,255,255,0.07)";e.currentTarget.style.color="rgba(255,255,255,0.4)";}}>✕</button>
+                    </div>
+                    {/* separador */}
+                    <div style={{background:BG,padding:"11px 28px",display:"flex",alignItems:"center",gap:16}}>
+                      <div style={{flex:1,height:1,background:"#ded9d0"}}/>
+                      <span style={{fontSize:9,color:"#b8b0a4",fontWeight:900,textTransform:"uppercase",letterSpacing:"0.18em",whiteSpace:"nowrap"}}>¿Quién se inscribe?</span>
+                      <div style={{flex:1,height:1,background:"#ded9d0"}}/>
+                    </div>
+                    {/* variantes */}
+                    <div className="vg">
+                      {g.variantes.map(v=>{
+                        const hk=`${g.id}-${v.id}`,isH=hov===hk,acV=v.menor?"#d97706":g.ac;
+                        return(
+                          <button key={v.id} onClick={()=>onSelect(v.id)}
+                            onMouseEnter={()=>setHov(hk)} onMouseLeave={()=>setHov(null)}
+                            style={{background:isH?"#fff":"#faf8f5",border:"none",
+                              padding:"30px 28px",textAlign:"left",cursor:"pointer",
+                              transition:"background .2s",fontFamily:"'Nunito',sans-serif"}}>
+                            {/* badge edad */}
+                            <div style={{display:"inline-flex",alignItems:"center",gap:12,
+                              background:v.menor?"#fff8ed":"#f0faf6",
+                              border:`1.5px solid ${acV}35`,borderRadius:18,padding:"10px 18px",marginBottom:22,
+                              boxShadow:`0 4px 16px ${acV}15`}}>
+                              <span style={{fontSize:30,lineHeight:1}}>{v.menor?"🧒":"🧑"}</span>
+                              <div>
+                                <div style={{fontSize:16,fontWeight:900,color:acV,lineHeight:1}}>{v.label}</div>
+                                <div style={{fontSize:10,color:acV,opacity:.65,marginTop:3,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em"}}>{v.menor?"Menor de 18 años":"Mayor de 18 años"}</div>
+                              </div>
+                            </div>
+                            <div style={{fontSize:17,fontWeight:900,color:DK,marginBottom:8,letterSpacing:"-0.01em"}}>{v.menor?"Inscripción para Menor":"Inscripción para Adulto"}</div>
+                            <p style={{fontSize:13,color:"#9c9490",margin:"0 0 22px",lineHeight:1.7,fontWeight:600}}>{v.menor?"Necesitas los datos del tutor o tutora legal y su autorización.":"Completa directamente tus datos personales y médicos."}</p>
+                            <div className="shimmer" style={{display:"inline-flex",alignItems:"center",gap:9,
+                              background:`linear-gradient(135deg,${acV},${acV}cc)`,color:"#fff",
+                              borderRadius:14,padding:"12px 20px",fontSize:13,fontWeight:900,
+                              transform:isH?"translateY(-3px)":"translateY(0)",
+                              boxShadow:isH?`0 12px 30px ${acV}50`:`0 5px 16px ${acV}35`,
+                              transition:"transform .25s cubic-bezier(.34,1.56,.64,1),box-shadow .25s"}}>
+                              Empezar inscripción →
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* ── CONTACTO blanco con acentos ── */}
+        <div style={{marginTop:28,borderRadius:24,overflow:"hidden",background:"#fff",
+          border:"1.5px solid #ede9e2",
+          boxShadow:"0 8px 40px rgba(0,0,0,0.07)"}}>
+          {/* barra naranja superior */}
+          <div style={{height:3,background:`linear-gradient(90deg,${OR},${OR2})`}}/>
+          <div className="cbar">
+            {[
+              {href:"https://wa.me/34610308049",ac:"#22c55e",em:"💬",label:"WhatsApp",val:"610 30 80 49"},
+              {href:"mailto:info@actifit.es",ac:OR,em:"✉️",label:"Email",val:"info@actifit.es"},
+              {href:"https://www.actifit.es",ac:"#0284c7",em:"🌐",label:"Web",val:"www.actifit.es"},
+            ].map((c,i)=>(
+              <a key={c.label} href={c.href} target={c.href.startsWith("mailto")?"_self":"_blank"} rel="noreferrer"
+                className={`link-hover${i<2?" clink":""} ci`}
+                style={{display:"flex",alignItems:"center",gap:14,padding:"20px 28px",
+                  textDecoration:"none",flex:"1 1 170px",background:"transparent",
+                  fontFamily:"'Nunito',sans-serif",transition:"background .2s"}}
+                onMouseEnter={e=>e.currentTarget.style.background="#faf8f5"}
+                onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                <div style={{width:48,height:48,background:`linear-gradient(145deg,${c.ac}20,${c.ac}08)`,
+                  border:`1.5px solid ${c.ac}25`,borderRadius:15,flexShrink:0,
+                  display:"flex",alignItems:"center",justifyContent:"center",
+                  fontSize:20,boxShadow:`0 6px 18px ${c.ac}25`}}>{c.em}</div>
+                <div>
+                  <div style={{fontSize:9,color:"#b8b0a4",fontWeight:900,textTransform:"uppercase",letterSpacing:"0.14em"}}>{c.label}</div>
+                  <div style={{fontSize:14,fontWeight:800,color:DK,marginTop:3}}>{c.val}</div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+        <p style={{textAlign:"center",marginTop:18,fontSize:11,color:"#c8c0b8",fontWeight:600,padding:"0 12px"}}>
+          ACTIFIT S.L. — AV. Independencia 45 BJ, San Sebastián de los Reyes 28701
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════
+   WIZARD
+══════════════════════════════ */
+function Wizard({type,onBack}){
+  const [step,setStep]=useState(0);
+  const [data,setData]=useState(INIT);
+  const [done,setDone]=useState(false);
+  const [sending,setSending]=useState(false);
+  const [sendErr,setSendErr]=useState(null);
+  const set=(k,v)=>setData(d=>({...d,[k]:v}));
+  const meta=FORMS.find(f=>f.id===type)||{ac:OR,gr:`linear-gradient(135deg,${OR},${OR2})`,title:type,badge:null};
+  const steps=PASOS[type]||["Resumen"];
+  const isLast=step===steps.length-1;
+  const pct=steps.length>1?(step/(steps.length-1))*100:100;
+
+  const handleSubmit=async()=>{
+    setSending(true);setSendErr(null);
+    const isMenor=["natacion_menor","verano_menor","deportiva_menor"].includes(type);
+    const payload={
+      tipo:type,
+      modalidad:meta.title+(meta.badge?" - "+meta.badge:""),
+      fecha:new Date().toLocaleDateString("es-ES"),
+      nombre:isMenor?(data.mNombre+" "+data.mApellidos):(data.nombre+" "+(data.apellidos||"")).trim(),
+      telefono:isMenor?data.tTelefono:data.telefono,
+      correo:isMenor?data.tCorreo:data.correo,
+      actividad:data.actividadTipo||data.nivelNatacion||data.tipoEntren||"-",
+      semanas:Array.isArray(data.semanasSelec)?data.semanasSelec.join(", "):"",
+      metodoPago:data.metodoPago||"-",
+      autorizaImagenes:data.autorizaImagenes||"-",
+      tutor:isMenor?(data.tNombre+" "+data.tApellidos):"",
+    };
+    try{
+      await fetch(SHEETS_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+      setDone(true);
+    }catch(e){
+      setSendErr("Error de conexion. Intentalo de nuevo.");
+    }finally{
+      setSending(false);
+    }
+  };
+  if(done)return(
+    <div style={{minHeight:"100vh",background:BG,display:"flex",alignItems:"center",justifyContent:"center",padding:24,fontFamily:"'Nunito',sans-serif"}}>
+      <style>{CSS}</style>
+      <div style={{textAlign:"center",maxWidth:400,padding:"0 20px"}}>
+        <div style={{width:96,height:96,background:meta.gr,borderRadius:28,margin:"0 auto 32px",
+          display:"flex",alignItems:"center",justifyContent:"center",fontSize:44,
+          boxShadow:`0 20px 56px ${meta.ac}50`}}>✓</div>
+        <h2 style={{fontSize:30,fontWeight:900,color:DK,marginBottom:12,letterSpacing:"-0.03em"}}>¡Inscripción completada!</h2>
+        <p style={{color:"#9c9490",fontSize:15,lineHeight:1.75,marginBottom:36,fontWeight:600}}>Hemos registrado todos tus datos correctamente.</p>
+        <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+          <button className="shimmer" onClick={onBack}
+            style={{padding:"14px 26px",borderRadius:14,fontSize:14,fontWeight:800,cursor:"pointer",
+              border:`1.5px solid ${meta.ac}`,background:"#fff",color:meta.ac,
+              fontFamily:"'Nunito',sans-serif",boxShadow:`0 4px 16px ${meta.ac}20`}}>← Portal</button>
+          <button className="shimmer" onClick={()=>{setDone(false);setStep(0);setData(INIT);}}
+            style={{padding:"14px 26px",borderRadius:14,fontSize:14,fontWeight:900,cursor:"pointer",
+              border:"none",background:meta.gr,color:"#fff",
+              fontFamily:"'Nunito',sans-serif",boxShadow:`0 8px 28px ${meta.ac}50`}}>Nueva inscripción</button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return(
+    <div style={{minHeight:"100vh",background:BG,overflowX:"hidden",fontFamily:"'Nunito',sans-serif"}}>
+      <style>{CSS}</style>
+      {/* navbar negro */}
+      <div style={{background:DK,position:"sticky",top:0,zIndex:50,
+        borderBottom:"1px solid rgba(255,255,255,0.07)",
+        boxShadow:"0 2px 24px rgba(0,0,0,0.5)"}}>
+        <div style={{maxWidth:800,margin:"0 auto",display:"flex",alignItems:"center",gap:14,height:58,padding:"0 24px"}}>
+          <button onClick={onBack}
+            style={{background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.1)",
+              color:"rgba(255,255,255,0.4)",cursor:"pointer",width:38,height:38,borderRadius:12,
+              fontSize:16,display:"flex",alignItems:"center",justifyContent:"center",
+              flexShrink:0,transition:"all .18s",fontFamily:"'Nunito',sans-serif"}}
+            onMouseEnter={e=>{e.currentTarget.style.background="rgba(255,255,255,0.14)";e.currentTarget.style.color="#fff";}}
+            onMouseLeave={e=>{e.currentTarget.style.background="rgba(255,255,255,0.07)";e.currentTarget.style.color="rgba(255,255,255,0.4)";}}>←</button>
+          <Logo h={22} light/>
+          <div style={{flex:1,minWidth:0,marginLeft:4}}>
+            <div style={{fontSize:14,fontWeight:900,color:"#fff",display:"flex",alignItems:"center",gap:9,flexWrap:"wrap",letterSpacing:"-0.01em"}}>
+              {meta.title}
+              {meta.badge&&<span style={{background:meta.ac,color:"#fff",fontSize:10,padding:"3px 10px",borderRadius:8,fontWeight:900,boxShadow:`0 2px 8px ${meta.ac}50`}}>{meta.badge}</span>}
+            </div>
+          </div>
+          <span style={{fontSize:11,color:"rgba(255,255,255,0.2)",fontWeight:900,flexShrink:0}}>{step+1} / {steps.length}</span>
+        </div>
+      </div>
+      {/* barra progreso naranja */}
+      <div style={{height:3,background:"#ede9e2"}}>
+        <div style={{height:"100%",background:meta.gr,width:`${pct}%`,transition:"width .5s cubic-bezier(.4,0,.2,1)",boxShadow:`0 0 10px ${meta.ac}80`}}/>
+      </div>
+      {/* tabs */}
+      <div className="wiz-tabs" style={{background:"#fff",borderBottom:"1.5px solid #ede9e2",padding:"10px 24px",display:"flex",gap:6,overflowX:"auto",boxShadow:"0 2px 10px rgba(0,0,0,0.04)"}}>
+        {steps.map((st,i)=>(
+          <button key={st} onClick={()=>i<=step&&setStep(i)}
+            style={{padding:"7px 15px",borderRadius:24,fontSize:11,fontWeight:900,border:"none",
+              cursor:i<=step?"pointer":"default",whiteSpace:"nowrap",flexShrink:0,
+              transition:"all .2s",fontFamily:"'Nunito',sans-serif",letterSpacing:"0.04em",
+              background:i===step?meta.ac:i<step?`${meta.ac}15`:BG,
+              color:i===step?"#fff":i<step?meta.ac:"#ccc",
+              boxShadow:i===step?`0 4px 14px ${meta.ac}45`:"none"}}>
+            {i<step?"✓ ":""}{st}
+          </button>
+        ))}
+      </div>
+      {/* contenido */}
+      <div className="wiz-body" style={{maxWidth:800,margin:"0 auto",padding:"28px 24px 140px"}}>
+        <Paso type={type} step={step} d={data} s={set} ac={meta.ac}/>
+      </div>
+      {/* nav inferior */}
+      <div className="wiz-foot" style={{position:"fixed",bottom:0,left:0,right:0,zIndex:40,
+        background:"rgba(247,245,242,0.97)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",
+        borderTop:"1.5px solid #ede9e2",padding:"14px 24px",
+        boxShadow:"0 -8px 40px rgba(0,0,0,0.07)"}}>
+        <div style={{maxWidth:800,margin:"0 auto",display:"flex",gap:12}}>
+          <button className="shimmer" onClick={step===0?onBack:()=>setStep(s=>s-1)}
+            style={{padding:"15px 24px",borderRadius:14,fontSize:14,fontWeight:800,cursor:"pointer",
+              border:"1.5px solid #dedad2",background:"#fff",color:"#666",flexShrink:0,
+              fontFamily:"'Nunito',sans-serif",boxShadow:"0 2px 10px rgba(0,0,0,0.06)"}}>
+            {step===0?"← Portal":"← Atrás"}
+          </button>
+          {!isLast
+            ?<button className="shimmer" onClick={()=>setStep(s=>s+1)}
+                style={{padding:"15px 0",borderRadius:14,fontSize:14,fontWeight:900,cursor:"pointer",
+                  border:"none",background:meta.gr,color:"#fff",flex:1,
+                  fontFamily:"'Nunito',sans-serif",boxShadow:`0 8px 28px ${meta.ac}45`}}>
+                Siguiente →
+              </button>
+            :<button className="shimmer" onClick={handleSubmit} disabled={sending}
+                style={{padding:"15px 0",borderRadius:14,fontSize:14,fontWeight:900,
+                  cursor:sending?"wait":"pointer",border:"none",flex:1,color:"#fff",
+                  background:sending?"#aaa":meta.gr,fontFamily:"'Nunito',sans-serif",
+                  boxShadow:sending?"none":`0 8px 28px ${meta.ac}45`,
+                  display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
+                {sending?"Enviando...":"Finalizar inscripcion"}
+              </button>}
+          {sendErr?<div style={{textAlign:"center",marginTop:8,fontSize:12,color:"#dc2626",fontWeight:700}}>{sendErr}</div>:null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function App(){
+  const [view,setView]=useState("portal");
+  const [type,setType]=useState(null);
+  if(view==="form"&&type)return <Wizard type={type} onBack={()=>{setView("portal");setType(null);}}/>;
+  return <Portal onSelect={t=>{setType(t);setView("form");}}/>;
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
