@@ -527,19 +527,12 @@ function Wizard({type,onBack}){
 
   const handleSubmit=async()=>{
     setSending(true);setSendErr(null);
-    const isMenor=["natacion_menor","verano_menor","deportiva_menor"].includes(type);
     const payload={
       tipo:type,
       modalidad:meta.title+(meta.badge?" - "+meta.badge:""),
       fecha:new Date().toLocaleDateString("es-ES"),
-      nombre:isMenor?(data.mNombre+" "+data.mApellidos):(data.nombre+" "+(data.apellidos||"")).trim(),
-      telefono:isMenor?data.tTelefono:data.telefono,
-      correo:isMenor?data.tCorreo:data.correo,
-      actividad:data.actividadTipo||data.nivelNatacion||data.tipoEntren||"-",
-      semanas:Array.isArray(data.semanasSelec)?data.semanasSelec.join(", "):"",
-      metodoPago:data.metodoPago||"-",
-      autorizaImagenes:data.autorizaImagenes||"-",
-      tutor:isMenor?(data.tNombre+" "+data.tApellidos):"",
+      ...data,
+      semanas:Array.isArray(data.semanasSelec)?data.semanasSelec.join(", "):data.semanasSelec||"",
     };
     try{
       const params=new URLSearchParams({data:JSON.stringify(payload)});
